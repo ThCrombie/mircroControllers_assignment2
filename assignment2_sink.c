@@ -44,15 +44,17 @@ PROCESS_THREAD(sink, ev, data){
 	broadcast_open(&broadcast, 129, &broadcast_call);
 	struct rootInfo *rootPtr;
 	rootPtr = &root;
+	
 	while(1){
+		int data[2] = {root.hops, root.sequence_nr};
 		etimer_set(&et, CLOCK_SECOND * 10);
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-		packetbuf_copyfrom(rootPtr, sizeof(root)+1); 
-	// error in compiler with the packetbuffer
-	// thing being sent needs to be a const void pointer
+		packetbuf_copyfrom(data, 3); 
+	// sends the array
 
 		root.sequence_nr = root.sequence_nr + 1;
 		broadcast_send(&broadcast);
+		printf("I am root. Sequence: %d\n",root.sequence_nr);
 	}
 	PROCESS_END();
 };
