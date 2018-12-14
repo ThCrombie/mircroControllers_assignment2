@@ -14,28 +14,29 @@
 PROCESS(node, "Node");
 AUTOSTART_PROCESSES(&node);
 
+int node_info[2];
 
-int this_node_data(int[2] array){
-	array[0] = array[0]+1; // hop count
-	
-	return array;
+int this_node_data(int recieved_array[]){
+	// this should edit the value of the array 
+	recieved_array[0] = recieved_array[0]+1; // hop count
+	return recieved_array;
 }
 
 struct nodeInfo {
 	int hops;
 	int sequence_nr;
-}; // the nodes dont really need a struct. its done via arrays
+}; // the nodes dont really need a struct. here its done via arrays
 
-int node_info[2];
+
 // code for recieving a broadcast (for the nodes 1 hop away from sink/root
 broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
   printf("broadcast message received from %d.%d: '%s'\n",
          from->u8[0], from->u8[1], (char *)packetbuf_dataptr());
   //struct nodeInfo thisNode;
-  //thisNode = packetbuf_dataptr();
-  *node_info = packetbuf_dataptr();
-  node_info[0] = node_info[0] +1;
+  //thisNode = packetbuf_dataptr(); // whats sent via packetbuf_dataptr is a pointer ->
+  *node_info = packetbuf_dataptr(); // assigns the value of node_info to the data recieved
+  this_node_data(node_info); // this adds +1 to the hop count
 }
 
 // code for recieving a unicast (from another leaf/node)
@@ -46,7 +47,7 @@ recv_uc(struct unicast_conn *c, const linkaddr_t *from){
   //struct nodeInfo thisNode;
   //thisNode = packetbuf_dataptr();
   *node_info = packetbuf_dataptr();
-  node_info[0] = node_info[0] +1;
+  this_node_data(node_info);
 }
 static const struct unicast_callbacks unicast_callbacks = {recv_uc};
 static struct unicast_conn uc;
