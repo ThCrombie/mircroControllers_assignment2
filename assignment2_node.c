@@ -52,6 +52,8 @@ recv_uc(struct unicast_conn *c, const linkaddr_t *from){
 static const struct unicast_callbacks unicast_callbacks = {recv_uc};
 static struct unicast_conn uc;
 
+static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
+static struct broadcast_conn broadcast;
 // main thread:
 // sends data recieved to the next node
 // addressing ?
@@ -61,12 +63,16 @@ PROCESS_THREAD(node, ev, data){
 	PROCESS_EXITHANDLER(unicast_close(&uc));
 	PROCESS_BEGIN();
 	unicast_open(&uc, 146, &unicast_callbacks);
+
+	PROCESS_EXITHANDLER(broadcast_close(&broadcast));
+	broadcast_open(&broadcast, 129, &broadcast_call);
+
 	static struct etimer et;
 	while(1){
 		// send this node's hop and sequence count over to the next node	
 		
 		linkaddr_t addr;
-		etimer_set(&et, CLOCK_SECOND);
+		etimer_set(&et, CLOCK_SECOND * 15);
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 	// this needs to send the node's structs
 		packetbuf_copyfrom(node_info, 3);
